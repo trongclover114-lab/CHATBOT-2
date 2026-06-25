@@ -18,12 +18,8 @@
   }
   #chat-header .avatar {
     width:38px; height:38px; border-radius:50%;
-    object-fit: contain;
-    background: white;
-    border: 1px solid #eee;
-    padding: 6px;
-    overflow: hidden;
-    display: block;
+    object-fit: contain; background: white; border: 1px solid #eee;
+    padding: 6px; overflow: hidden; display: block;
   }
   #chat-header .title { font-weight:600; font-size:15px; color:#111; }
 
@@ -32,19 +28,12 @@
     align-items:center; justify-content:flex-start; padding: 40px 20px 20px;
     transition: all .2s;
   }
-
-  #chat-body.started {
-    align-items:stretch; justify-content:flex-end; padding:16px;
-  }
+  #chat-body.started { align-items:stretch; justify-content:flex-end; padding:16px; }
 
   #welcome-logo {
     width:70px; height:70px; border-radius:50%; margin-bottom:14px;
-    object-fit: contain;
-    background: white;
-    border: 1px solid #eee;
-    padding: 10px;
-    overflow: hidden;
-    display: block;
+    object-fit: contain; background: white; border: 1px solid #eee;
+    padding: 10px; overflow: hidden; display: block;
   }
   #welcome-name { font-size:17px; font-weight:700; color:#111; margin-bottom:4px; text-align:center;}
   #welcome-sub { font-size:13px; color:#777; margin-bottom:auto; }
@@ -56,18 +45,13 @@
   .me  { background: var(--accent, #1d4ed8); color:white; align-self:flex-end; }
 
   #start-btn {
-    margin-top: 16px;
-    background:white; border:1px solid #ddd; color: var(--accent, #1d4ed8);
+    margin-top: 16px; background:white; border:1px solid #ddd; color: var(--accent, #1d4ed8);
     font-weight:600; padding:10px 26px; border-radius:22px; cursor:pointer; font-size:14px;
   }
   #start-btn:hover { background:#fafafa; }
-
   #tap-hint { font-size:12px; color:#999; margin-bottom:6px; }
 
-  #footer-note {
-    font-size:11px; color:#999; text-align:center; padding: 10px 16px;
-    border-top:1px solid #f0f0f0;
-  }
+  #footer-note { font-size:11px; color:#999; text-align:center; padding: 10px 16px; border-top:1px solid #f0f0f0; }
   #footer-note a { color: var(--accent, #1d4ed8); text-decoration:none; }
 
   #input-area { display:none; border-top:1px solid #eee; }
@@ -80,13 +64,11 @@
 
 <div id="chat-card" style="--accent:#0e8a6d">
   <div id="chat-header">
-    <img class="avatar" src="public/icons/ic_favicon.png" alt="logo">
-    <div class="title">Customer Support <img src="public/icons/tich.webp" alt="icon" style="width:16px;height:16px;vertical-align:middle;border-radius:50%;"></div>
+    <div class="title">Customer Support</div>
   </div>
 
   <div id="chat-body">
-    <img id="welcome-logo" src="public/icons/ic_favicon.png" alt="logo">
-    <div id="welcome-name">Customer Support <img src="public/icons/tich.webp" alt="icon" style="width:16px;height:16px;vertical-align:middle;border-radius:50%;"></div>
+    <div id="welcome-name">Customer Support</div>
     <div id="welcome-sub">Usually replies within a few minutes</div>
 
     <div id="messages"></div>
@@ -110,7 +92,6 @@ const body = document.getElementById('chat-body');
 const messagesEl = document.getElementById('messages');
 const startBtn = document.getElementById('start-btn');
 const tapHint = document.getElementById('tap-hint');
-const welcomeLogo = document.getElementById('welcome-logo');
 const welcomeName = document.getElementById('welcome-name');
 const welcomeSub = document.getElementById('welcome-sub');
 const inputArea = document.getElementById('input-area');
@@ -118,10 +99,32 @@ const input = document.getElementById('chat-input');
 
 let started = false;
 
+// Escape HTML rồi convert \n -> <br> và tự nhận diện link (http/https) thành <a>
+function formatMessage(text) {
+  const escapeHtml = (str) => str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+
+  let safe = escapeHtml(text);
+
+  // Xuống dòng
+  safe = safe.replace(/\n/g, '<br>');
+
+  // Tự nhận diện link
+  const urlRegex = /((https?:\/\/|www\.)[^\s<]+)/g;
+  safe = safe.replace(urlRegex, (match) => {
+    let href = match.startsWith('http') ? match : 'https://' + match;
+    return `<a href="${href}" target="_blank" rel="noopener noreferrer" style="color:var(--accent,#1d4ed8); text-decoration:underline;">${match}</a>`;
+  });
+
+  return safe;
+}
+
 function addMessage(sender, text) {
   const div = document.createElement('div');
   div.className = 'msg ' + (sender === 'bot' ? 'bot' : 'me');
-  div.textContent = text;
+  div.innerHTML = formatMessage(text);
   messagesEl.appendChild(div);
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
@@ -131,21 +134,19 @@ function startChat() {
   started = true;
 
   body.classList.add('started');
-  welcomeLogo.style.display = 'none';
   welcomeName.style.display = 'none';
   welcomeSub.style.display = 'none';
   tapHint.style.display = 'none';
   startBtn.style.display = 'none';
   inputArea.classList.add('show');
 
-  addMessage('bot', "Trăm năm trong cõi người ta
+  addMessage('bot', `Trăm năm trong cõi người ta
 Chữ tài chữ mệnh khéo là ghét nhau
 Trải qua một cuộc bể dâu
 Những điều trông thấy mà đau đớn lòng.
-https://voh.com.vn/song-dep/tho-luc-bat-ngan-433808.html");
+https://voh.com.vn/song-dep/tho-luc-bat-ngan-433808.html`);
 }
 
-// Simple automated reply logic — can be replaced with a real AI API call
 function getBotReply(text) {
   const t = text.toLowerCase();
   if (t.includes('price') || t.includes('cost') || t.includes('quote')) {
